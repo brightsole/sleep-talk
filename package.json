@@ -9,10 +9,7 @@
     "typescript",
     "serverless"
   ],
-  "files": [
-    "dist/index.js",
-    "dist/index.d.ts"
-  ],
+  "files": ["dist"],
   "scripts": {
     "test": "jest",
     "build": "tsc index.ts --outDir dist -d"
