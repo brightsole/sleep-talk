@@ -15,7 +15,7 @@
   "scripts": {
     "test": "jest",
     "build": "rm -rf dist && npm run build:js && npm run build:types",
-    "build:js": "babel src --out-dir dist --extensions \".ts\"",
+    "build:js": "babel src --out-dir dist --extensions \".ts\" --ignore \"**/*.test.ts\"",
     "build:types": "tsc src/index.ts --outDir dist --declaration --emitDeclarationOnly"
   },
   "repository": "git@github.com:brightsole/sleep-talk.git",
