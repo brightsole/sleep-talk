@@ -1,0 +1,11 @@
+{
+  "extends": ["@brightsole/lint-node-ts", "plugin:jest/recommended"],
+  "rules": {
+    "no-new": "off",
+    "import/no-extraneous-dependencies": "off",
+    "@typescript-eslint/no-unused-vars": ["error", {
+      "ignoreRestSiblings": true,
+      "argsIgnorePattern": "^_"
+    }]
+  }
+}

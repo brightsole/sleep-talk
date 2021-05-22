@@ -1,0 +1,46 @@
+{
+  "name": "@brightsole/sleep-talk",
+  "version": "0.0.0",
+  "description": "aws dynamodb wrapper",
+  "main": "dist/index.js",
+  "keywords": [
+    "dynamodb",
+    "orm",
+    "typescript",
+    "serverless"
+  ],
+  "files": [
+    "dist/index.js",
+    "dist/index.d.ts"
+  ],
+  "scripts": {
+    "test": "jest",
+    "build": "tsc index.ts --outDir dist -d"
+  },
+  "repository": "git@github.com:brightsole/sleep-talk.git",
+  "author": "Drew Showalter <maelstroswim@gmail.com>",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/preset-env": "^7.14.2",
+    "@babel/preset-typescript": "^7.13.0",
+    "@brightsole/eslint-config-lint-node-ts": "^0.1.1",
+    "@types/jest": "^26.0.23",
+    "@types/sinon": "^10.0.0",
+    "aws-sdk": "^2.907.0",
+    "eslint-plugin-jest": "^24.3.6",
+    "jest": "^26.6.3",
+    "lint-staged": "^11.0.0",
+    "nyc": "^15.1.0",
+    "sinon": "^10.0.0",
+    "typescript": "^4.2.4"
+  },
+  "lint-staged": {
+    "*.js": [ "eslint --fix" ]
+  },
+  "dependencies": {
+    "apollo-datasource": "^0.9.0"
+  },
+  "peerDependencies": {
+    "aws-sdk": "^2.907.0"
+  }
+}
