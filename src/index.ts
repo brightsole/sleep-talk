@@ -58,9 +58,9 @@ export default class DocDatabase<T> extends DataSource {
     const now = new Date();
 
     const Item = {
+      id: this.getId(), // allow a savvy user to set their own id
       ...params,
       hashKey,
-      id: this.getId(),
       createdAt: now.toISOString(),
       updatedAt: now.toISOString(),
     };
