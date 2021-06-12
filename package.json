@@ -14,6 +14,7 @@
   ],
   "scripts": {
     "test": "jest",
+    "precommit": "build",
     "build": "rm -rf dist && npm run build:js && npm run build:types",
     "build:js": "babel src --out-dir dist --extensions \".ts\" --ignore \"**/*.test.ts\"",
     "build:types": "tsc src/index.ts --outDir dist --declaration --emitDeclarationOnly"
@@ -38,7 +39,7 @@
     "typescript": "^4.2.4"
   },
   "lint-staged": {
-    "*.js": [
+    "*.ts": [
       "eslint --fix"
     ]
   },
