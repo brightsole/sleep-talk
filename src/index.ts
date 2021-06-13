@@ -122,10 +122,10 @@ export default class DocDatabase<T> extends DataSource {
     };
   }
 
-  async query(query: Query, { hashKey }: ContextOptions): Promise<ItemsResponse<T>> {
+  async query(query: Query): Promise<ItemsResponse<T>> {
     const result = await this.client
       .scan({
-        ...createFilterExpression({ ...query, hashKey }),
+        ...createFilterExpression({ ...query }),
         ReturnConsumedCapacity: 'TOTAL',
         TableName: this.tableName,
       })
