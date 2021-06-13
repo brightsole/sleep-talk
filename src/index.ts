@@ -22,6 +22,7 @@ export type ItemsResponse<T> = {
 };
 export type ContextOptions = {
   hashKey: DynamoDB.Key;
+  ConditionExpression?: string;
 };
 
 export default class DocDatabase<T> extends DataSource {
@@ -54,7 +55,10 @@ export default class DocDatabase<T> extends DataSource {
     };
   }
 
-  async createItem(params: Partial<T>, { hashKey }: ContextOptions): Promise<ItemResponse<T>> {
+  async createItem(
+    params: Partial<T>,
+    { hashKey, ConditionExpression }: ContextOptions
+  ): Promise<ItemResponse<T>> {
     const now = new Date();
 
     const Item = {
@@ -67,7 +71,7 @@ export default class DocDatabase<T> extends DataSource {
 
     const result = await this.client
       .put({
-        ConditionExpression: 'attribute_not_exists(id)',
+        ConditionExpression: ConditionExpression || 'attribute_not_exists(id)',
         ReturnConsumedCapacity: 'TOTAL',
         TableName: this.tableName,
         Item,
@@ -77,16 +81,20 @@ export default class DocDatabase<T> extends DataSource {
     return { item: Item as any, consumedCapacity: result.ConsumedCapacity?.CapacityUnits };
   }
 
-  async updateItem(partial: Partial<T>, { hashKey }: ContextOptions): Promise<ItemResponse<T>> {
+  async updateItem(
+    partial: Partial<T>,
+    { hashKey, ConditionExpression }: ContextOptions
+  ): Promise<ItemResponse<T>> {
     const { id, ...rest } = partial as any;
 
     const result = await this.client
       .update({
-        Key: { hashKey, id },
+        ...(ConditionExpression && { ConditionExpression }),
         ...createUpdateExpression(rest),
         ReturnConsumedCapacity: 'TOTAL',
         TableName: this.tableName,
         ReturnValues: 'ALL_NEW',
+        Key: { hashKey, id },
       })
       .promise();
 
@@ -131,12 +139,16 @@ export default class DocDatabase<T> extends DataSource {
     };
   }
 
-  async deleteItem(id: string, { hashKey }: ContextOptions): Promise<ItemResponse<null>> {
+  async deleteItem(
+    id: string,
+    { hashKey, ConditionExpression }: ContextOptions
+  ): Promise<ItemResponse<null>> {
     const result = await this.client
       .delete({
         Key: { hashKey, id },
-        ReturnConsumedCapacity: 'TOTAL',
         TableName: this.tableName,
+        ReturnConsumedCapacity: 'TOTAL',
+        ...(ConditionExpression && { ConditionExpression }),
       })
       .promise();
 
