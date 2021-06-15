@@ -1,7 +1,7 @@
 import { DynamoDB } from 'aws-sdk';
 import { DataSource } from 'apollo-datasource';
 import { createUpdateExpression } from './createUpdateExpression';
-import { createFilterExpression, Query } from './createFilterExpression';
+import { createFilterExpression, Query as _Query } from './createFilterExpression';
 import { createExpressions } from './createExpressions';
 
 export type ConstructionProps = {
@@ -24,6 +24,7 @@ export type ContextOptions = {
   hashKey: DynamoDB.Key;
   ConditionExpression?: string;
 };
+export type Query = _Query;
 
 export default class DocDatabase<T> extends DataSource {
   client: DynamoDB.DocumentClient;
