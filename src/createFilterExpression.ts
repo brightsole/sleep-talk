@@ -13,12 +13,11 @@ type QueryMatch =
       $gt?: string;
       $lt?: string;
     };
-// TODO: implement sorting & pagination
+
 export type Query = {
-  // $isAscending?: boolean;
-  // $startFromId?: string;
-  // $sortKey?: string;
-  // $limit?: number;
+  $isAscending?: boolean;
+  $startFromId?: string;
+  $limit?: number;
   [index: string]: undefined | QueryMatch;
 };
 
@@ -46,7 +45,10 @@ const getMatchingExpression = (key: string, queryMatch: QueryMatch): string => {
   return `#${key} = :${key}`;
 };
 
-export const createFilterExpression = (query: Query, override: string = ''): QueryInput => {
+export const createFilterExpression = (
+  { $limit, $startFromId, $isAscending = true, ...query }: Query,
+  override: string = ''
+): QueryInput => {
   const flatProperties = Object.entries(query).reduce((res, [key, value]) => {
     const isMatchingParameter = value && typeof value === 'object';
     return isMatchingParameter
@@ -66,9 +68,9 @@ export const createFilterExpression = (query: Query, override: string = ''): Que
 
   return {
     ...createExpressions(flatProperties, unusedAttributeValues),
-    // ...($startFromId && { ExclusiveStartKey: $startFromId }),
-    // ...($limit && { Limit: $limit }),
-    // ScanIndexForward: $isAscending,
+    ...($startFromId && { ExclusiveStartKey: $startFromId }),
+    ...($limit && { Limit: $limit }),
+    ScanIndexForward: $isAscending,
     Select: 'ALL_ATTRIBUTES',
     FilterExpression,
   };
