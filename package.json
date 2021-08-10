@@ -1,6 +1,6 @@
 {
   "name": "@brightsole/sleep-talk",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "aws dynamodb wrapper",
   "main": "dist/index.js",
   "keywords": [
