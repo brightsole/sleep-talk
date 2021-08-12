@@ -1,6 +1,8 @@
 import { createExpressions, ExpressionAttributes } from './createExpressions';
 
 type QueryMatch =
+  | Array<string>
+  | Array<number>
   | boolean
   | string
   | number
@@ -30,6 +32,12 @@ export type QueryInput = {
 } & ExpressionAttributes;
 
 const getMatchingExpression = (key: string, queryMatch: QueryMatch): string => {
+  if (Array.isArray(queryMatch)) {
+    return `#${key} IN (${queryMatch
+      .map((_: string | number, i: number) => `:${key}${i}`)
+      .join(', ')})`;
+  }
+
   if (queryMatch && typeof queryMatch === 'object') {
     const matchKeys = Object.keys(queryMatch);
 
@@ -50,7 +58,7 @@ export const createFilterExpression = (
   override: string = ''
 ): QueryInput => {
   const flatProperties = Object.entries(query).reduce((res, [key, value]) => {
-    const isMatchingParameter = value && typeof value === 'object';
+    const isMatchingParameter = value && typeof value === 'object' && !Array.isArray(value);
     return isMatchingParameter
       ? { ...res, [key]: Object.values(value as any)[0] }
       : { ...res, [key]: value };
@@ -62,6 +70,8 @@ export const createFilterExpression = (
     override
   );
 
+  // both "exists" methods don't have values in their variables
+  // so we can remove those values from our ExpressionAttributeValues
   const unusedAttributeValues = FilterExpression.match(/exists\(#([^)]+)\)/gi)?.map((e) =>
     e.replace(/exists\(#(.+)\)/, '$1')
   );

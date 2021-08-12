@@ -40,4 +40,20 @@ describe('createFilterExpression(query)', () => {
     expect(result.ScanIndexForward).toEqual(false);
     expect(result.ExclusiveStartKey).toEqual('niner');
   });
+
+  test('filter for any match of a list of things', () => {
+    const result = createFilterExpression({
+      genres: ['sci-fi', 'turbinado', 'matadorian'],
+    });
+
+    expect(result.ExpressionAttributeNames).toEqual({
+      '#genres': 'genres',
+    });
+    expect(result.ExpressionAttributeValues).toEqual({
+      ':genres0': 'sci-fi',
+      ':genres1': 'turbinado',
+      ':genres2': 'matadorian',
+    });
+    expect(result.FilterExpression).toEqual('#genres IN (:genres0, :genres1, :genres2)');
+  });
 });
