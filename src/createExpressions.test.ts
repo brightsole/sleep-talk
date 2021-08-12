@@ -20,7 +20,32 @@ describe('createExpressions(item, filterVals, passthrough)', () => {
     });
   });
 
-  // TODO: test the filterExpressions
+  test('turns key-values into DDB key-values', () => {
+    const result = createExpressions({ dingle: 'flinglbop' });
+    expect(result.ExpressionAttributeNames).toEqual({
+      '#dingle': 'dingle',
+    });
+    expect(result.ExpressionAttributeValues).toEqual({
+      ':dingle': 'flinglbop',
+    });
+  });
 
-  // TODO: test the expression creation more thoroughly
+  test('turns array key-values into DDB key-values', () => {
+    const result = createExpressions({ dingle: ['flinglbop', 'flooble'] });
+    expect(result.ExpressionAttributeNames).toEqual({
+      '#dingle': 'dingle',
+    });
+    expect(result.ExpressionAttributeValues).toEqual({
+      ':dingle0': 'flinglbop',
+      ':dingle1': 'flooble',
+    });
+  });
+
+  test('filters out unused values based on named list', () => {
+    const result = createExpressions({ dingle: 'flinglbop' }, ['dingle']);
+    expect(result.ExpressionAttributeNames).toEqual({
+      '#dingle': 'dingle',
+    });
+    expect(result.ExpressionAttributeValues).toEqual({});
+  });
 });
