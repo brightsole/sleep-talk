@@ -23,6 +23,7 @@ export type ItemsResponse<T> = {
 export type ContextOptions = {
   hashKey: DynamoDB.Key;
   ConditionExpression?: string;
+  withMetadata?: boolean;
 };
 export type Query = _Query;
 
@@ -41,7 +42,10 @@ export default class DocDatabase<T> extends DataSource {
     this.client = new DynamoDB.DocumentClient({ region });
   }
 
-  async getItem(id: string, { hashKey }: ContextOptions): Promise<ItemResponse<T>> {
+  async getItem(
+    id: string,
+    { hashKey, withMetadata }: ContextOptions
+  ): Promise<T | ItemResponse<T>> {
     const result = await this.client
       .get({
         Key: { hashKey, id },
@@ -50,16 +54,18 @@ export default class DocDatabase<T> extends DataSource {
       })
       .promise();
 
+    if (!withMetadata) return result.Item as T;
+
     return {
-      item: result.Item as any,
+      item: result.Item as T,
       consumedCapacity: result.ConsumedCapacity?.CapacityUnits,
     };
   }
 
   async createItem(
     params: Partial<T>,
-    { hashKey, ConditionExpression }: ContextOptions
-  ): Promise<ItemResponse<T>> {
+    { hashKey, ConditionExpression, withMetadata }: ContextOptions
+  ): Promise<T | ItemResponse<T>> {
     const now = new Date();
 
     const Item = {
@@ -79,13 +85,15 @@ export default class DocDatabase<T> extends DataSource {
       })
       .promise();
 
-    return { item: Item as any, consumedCapacity: result.ConsumedCapacity?.CapacityUnits };
+    if (!withMetadata) return Item as unknown as T;
+
+    return { item: Item as unknown as T, consumedCapacity: result.ConsumedCapacity?.CapacityUnits };
   }
 
   async updateItem(
     partial: Partial<T>,
-    { hashKey, ConditionExpression }: ContextOptions
-  ): Promise<ItemResponse<T>> {
+    { hashKey, ConditionExpression, withMetadata }: ContextOptions
+  ): Promise<T | ItemResponse<T>> {
     const { id, ...rest } = partial as any;
 
     const result = await this.client
@@ -99,13 +107,15 @@ export default class DocDatabase<T> extends DataSource {
       })
       .promise();
 
+    if (!withMetadata) return result.Attributes as T;
+
     return {
-      item: result.Attributes as any,
+      item: result.Attributes as T,
       consumedCapacity: result.ConsumedCapacity?.CapacityUnits,
     };
   }
 
-  async getAll({ hashKey }: ContextOptions): Promise<ItemsResponse<T>> {
+  async getAll({ hashKey, withMetadata }: ContextOptions): Promise<T[] | ItemsResponse<T>> {
     const result = await this.client
       .query({
         KeyConditionExpression: '#hashKey = :hashKey',
@@ -115,15 +125,20 @@ export default class DocDatabase<T> extends DataSource {
       })
       .promise();
 
+    if (!withMetadata) return result.Items as T[];
+
     return {
       consumedCapacity: result.ConsumedCapacity?.CapacityUnits,
       lastScannedId: result.LastEvaluatedKey as any,
-      items: result.Items as any[],
+      items: result.Items as T[],
       count: result.Count,
     };
   }
 
-  async query(query: Query): Promise<ItemsResponse<T>> {
+  async query(
+    query: Query,
+    { withMetadata }: Partial<ContextOptions> = {}
+  ): Promise<T[] | ItemsResponse<T>> {
     const result = await this.client
       .scan({
         ...createFilterExpression({ ...query }),
@@ -132,18 +147,20 @@ export default class DocDatabase<T> extends DataSource {
       })
       .promise();
 
+    if (!withMetadata) return result.Items as T[];
+
     return {
       consumedCapacity: result.ConsumedCapacity?.CapacityUnits,
       lastScannedId: result.LastEvaluatedKey as any,
-      items: result.Items as any[],
+      items: result.Items as T[],
       count: result.Count,
     };
   }
 
   async deleteItem(
     id: string,
-    { hashKey, ConditionExpression }: ContextOptions
-  ): Promise<ItemResponse<null>> {
+    { hashKey, ConditionExpression, withMetadata }: ContextOptions
+  ): Promise<null | ItemResponse<null>> {
     const result = await this.client
       .delete({
         Key: { hashKey, id },
@@ -152,6 +169,8 @@ export default class DocDatabase<T> extends DataSource {
         ...(ConditionExpression && { ConditionExpression }),
       })
       .promise();
+
+    if (!withMetadata) return null;
 
     return { item: null, consumedCapacity: result.ConsumedCapacity?.CapacityUnits };
   }
