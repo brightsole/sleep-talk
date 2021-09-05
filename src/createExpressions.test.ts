@@ -1,15 +1,19 @@
 import sinon from 'sinon';
 import { createExpressions } from './createExpressions';
 
-describe('createExpressions(item, filterVals, passthrough)', () => {
+describe('createExpressions({ fields, unusedAttributeValues, startingExpression, isFilter })', () => {
   const toDate = new Date(2020, 1, 1, 1, 1, 1, 0);
   sinon.useFakeTimers(toDate);
 
   test('allows a passthrough', () => {
-    const result = createExpressions({}, [], {
-      ExpressionAttributeNames: { '#createdAt': 'createdAt' },
-      ExpressionAttributeValues: {
-        ':createdAt': toDate.toISOString(),
+    const result = createExpressions({
+      fields: {},
+      unusedAttributeValues: [],
+      startingExpression: {
+        ExpressionAttributeNames: { '#createdAt': 'createdAt' },
+        ExpressionAttributeValues: {
+          ':createdAt': toDate.toISOString(),
+        },
       },
     });
     expect(result.ExpressionAttributeNames).toEqual({
@@ -21,7 +25,7 @@ describe('createExpressions(item, filterVals, passthrough)', () => {
   });
 
   test('turns key-values into DDB key-values', () => {
-    const result = createExpressions({ dingle: 'flinglbop' });
+    const result = createExpressions({ fields: { dingle: 'flinglbop' } });
     expect(result.ExpressionAttributeNames).toEqual({
       '#dingle': 'dingle',
     });
@@ -30,8 +34,11 @@ describe('createExpressions(item, filterVals, passthrough)', () => {
     });
   });
 
-  test('turns array key-values into DDB key-values', () => {
-    const result = createExpressions({ dingle: ['flinglbop', 'flooble'] });
+  test('turns array key-values into DDB key-values when filtering', () => {
+    const result = createExpressions({
+      fields: { dingle: ['flinglbop', 'flooble'] },
+      isFilter: true,
+    });
     expect(result.ExpressionAttributeNames).toEqual({
       '#dingle': 'dingle',
     });
@@ -42,7 +49,10 @@ describe('createExpressions(item, filterVals, passthrough)', () => {
   });
 
   test('filters out unused values based on named list', () => {
-    const result = createExpressions({ dingle: 'flinglbop' }, ['dingle']);
+    const result = createExpressions({
+      fields: { dingle: 'flinglbop' },
+      unusedAttributeValues: ['dingle'],
+    });
     expect(result.ExpressionAttributeNames).toEqual({
       '#dingle': 'dingle',
     });

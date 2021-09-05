@@ -12,17 +12,26 @@ const BASE_EXPRESSION = {
   ExpressionAttributeNames: {},
 };
 
-export const createExpressions = (
-  fields: any,
-  unusedAttributeValues: string[] = [],
-  startingExpression: ExpressionAttributes = BASE_EXPRESSION
-): ExpressionAttributes =>
+export type ExpressionProps = {
+  fields: any;
+  unusedAttributeValues?: string[];
+  startingExpression?: ExpressionAttributes;
+  isFilter?: boolean;
+};
+
+export const createExpressions = ({
+  fields,
+  unusedAttributeValues = [],
+  startingExpression = BASE_EXPRESSION,
+  isFilter,
+}: ExpressionProps): ExpressionAttributes =>
   Object.entries(fields).reduce((expression, [key, value]: any): ExpressionAttributes => {
     const unfiltered = !unusedAttributeValues.includes(key);
     const isArray = Array.isArray(value);
 
     const arrayValues =
       isArray &&
+      isFilter &&
       value.reduce((res: any, val: any, i: number) => ({ ...res, [`:${key}${i}`]: val }), {});
 
     return {
@@ -32,7 +41,7 @@ export const createExpressions = (
       },
       ExpressionAttributeValues: {
         ...expression.ExpressionAttributeValues,
-        ...(unfiltered && !isArray && { [`:${key}`]: value }),
+        ...(unfiltered && !arrayValues && { [`:${key}`]: value }),
         ...arrayValues,
       },
     };

@@ -41,4 +41,11 @@ describe('createUpdateExpression(item)', () => {
     const result = createUpdateExpression({});
     expect(result.UpdateExpression.slice(-1)).not.toEqual(',');
   });
+
+  test('properly formats array values', () => {
+    const result = createUpdateExpression({ titleNine: [{ isGood: true }] });
+
+    expect(result.UpdateExpression).toEqual('SET #titleNine = :titleNine, #updatedAt = :updatedAt');
+    expect(result.ExpressionAttributeValues[':titleNine']).toEqual([{ isGood: true }]);
+  });
 });

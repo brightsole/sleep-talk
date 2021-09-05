@@ -77,7 +77,7 @@ export const createFilterExpression = (
   );
 
   return {
-    ...createExpressions(flatProperties, unusedAttributeValues),
+    ...createExpressions({ fields: flatProperties, unusedAttributeValues, isFilter: true }),
     ...($startFromId && { ExclusiveStartKey: $startFromId }),
     ...($limit && { Limit: $limit }),
     ScanIndexForward: $isAscending,

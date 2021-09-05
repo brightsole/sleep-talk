@@ -119,7 +119,7 @@ export default class DocDatabase<T> extends DataSource {
     const result = await this.client
       .query({
         KeyConditionExpression: '#hashKey = :hashKey',
-        ...createExpressions({ hashKey }),
+        ...createExpressions({ fields: { hashKey } }),
         ReturnConsumedCapacity: 'TOTAL',
         TableName: this.tableName,
       })

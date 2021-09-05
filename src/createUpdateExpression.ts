@@ -15,5 +15,5 @@ export const createUpdateExpression = (item: any, override: string = 'SET '): Up
     override
   );
 
-  return { ...createExpressions(fields), UpdateExpression: updateExpression };
+  return { ...createExpressions({ fields }), UpdateExpression: updateExpression };
 };
