@@ -30,7 +30,7 @@ export type ContextOptions = {
 };
 export type Query = _Query;
 
-export default class DocDatabase<T> extends DataSource {
+export default class DocDatabase<T extends { [index: string]: any }> extends DataSource {
   client: DynamoDB.DocumentClient;
 
   tableName: DynamoDB.TableName;
@@ -61,7 +61,7 @@ export default class DocDatabase<T> extends DataSource {
 
     return {
       item: result.Item as T,
-      consumedCapacity: result.ConsumedCapacity?.CapacityUnits,
+      consumedCapacity: result.ConsumedCapacity?.CapacityUnits || 0,
     };
   }
 
@@ -72,12 +72,12 @@ export default class DocDatabase<T> extends DataSource {
     const now = new Date();
 
     const Item = {
-      id: this.getId(), // allow a savvy user to set their own id
+      id: this.getId(),
       ...params,
       hashKey,
       createdAt: now.toISOString(),
       updatedAt: now.toISOString(),
-    };
+    } as unknown as T;
 
     const result = await this.client
       .put({
@@ -88,16 +88,16 @@ export default class DocDatabase<T> extends DataSource {
       })
       .promise();
 
-    if (!withMetadata) return Item as unknown as T;
+    if (!withMetadata) return Item;
 
-    return { item: Item as unknown as T, consumedCapacity: result.ConsumedCapacity?.CapacityUnits };
+    return { item: Item, consumedCapacity: result.ConsumedCapacity?.CapacityUnits || 0 };
   }
 
   async updateItem(
     partial: Partial<T>,
     { hashKey, ConditionExpression, withMetadata }: ContextOptions
   ): Promise<T | ItemResponse<T>> {
-    const { id, ...rest } = partial as any;
+    const { id, ...rest } = partial;
 
     const result = await this.client
       .update({
@@ -114,7 +114,7 @@ export default class DocDatabase<T> extends DataSource {
 
     return {
       item: result.Attributes as T,
-      consumedCapacity: result.ConsumedCapacity?.CapacityUnits,
+      consumedCapacity: result.ConsumedCapacity?.CapacityUnits || 0,
     };
   }
 
@@ -131,7 +131,7 @@ export default class DocDatabase<T> extends DataSource {
     if (!withMetadata) return result.Items as T[];
 
     return {
-      consumedCapacity: result.ConsumedCapacity?.CapacityUnits,
+      consumedCapacity: result.ConsumedCapacity?.CapacityUnits || 0,
       lastScannedId: result.LastEvaluatedKey as any,
       items: result.Items as T[],
       count: result.Count,
@@ -168,7 +168,7 @@ export default class DocDatabase<T> extends DataSource {
     return {
       ConsumedCapacity: {
         CapacityUnits: results.reduce(
-          (sum, result) => (result?.ConsumedCapacity?.CapacityUnits ?? 0) + sum,
+          (sum, result) => (result.ConsumedCapacity?.CapacityUnits || 0) + sum,
           0
         ),
       },
@@ -205,7 +205,7 @@ export default class DocDatabase<T> extends DataSource {
     if (!withMetadata) return result.Items as T[];
 
     return {
-      consumedCapacity: result.ConsumedCapacity?.CapacityUnits,
+      consumedCapacity: result.ConsumedCapacity?.CapacityUnits || 0,
       lastScannedId: result.LastEvaluatedKey as any,
       items: result.Items as T[],
       count: result.Count,
@@ -227,6 +227,6 @@ export default class DocDatabase<T> extends DataSource {
 
     if (!withMetadata) return null;
 
-    return { item: null, consumedCapacity: result.ConsumedCapacity?.CapacityUnits };
+    return { item: null, consumedCapacity: result.ConsumedCapacity?.CapacityUnits || 0 };
   }
 }
